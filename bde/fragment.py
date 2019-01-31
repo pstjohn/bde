@@ -1,0 +1,78 @@
+import rdkit
+import rdkit.Chem
+import rdkit.Chem.AllChem
+from collections import Counter
+import pandas as pd
+
+import logging
+
+def fragment_iterator(smiles):
+
+    mol = rdkit.Chem.MolFromSmiles(smiles)
+    mol = rdkit.Chem.rdmolops.AddHs(mol)
+    rdkit.Chem.Kekulize(mol, clearAromaticFlags=True)
+
+    if 'F' in count_atom_types(smiles):
+        return
+
+    for bond in mol.GetBonds():
+
+        if bond.IsInRing():
+            continue
+
+        if bond.GetBondTypeAsDouble() > 1.9999:
+            continue
+
+        try:
+
+            # Use RDkit to break the given bond
+            mh = rdkit.Chem.RWMol(mol)
+            a1 = bond.GetBeginAtomIdx()
+            a2 = bond.GetEndAtomIdx()
+            mh.RemoveBond(a1, a2)
+
+            mh.GetAtomWithIdx(a1).SetNoImplicit(True)
+            mh.GetAtomWithIdx(a2).SetNoImplicit(True)
+
+            # Call SanitizeMol to update radicals
+            rdkit.Chem.SanitizeMol(mh)
+
+            # Convert the two molecules into a SMILES string
+            fragmented_smiles = rdkit.Chem.MolToSmiles(mh)
+
+            # Split fragment and canonicalize
+            frag1, frag2 = sorted(fragmented_smiles.split('.'))
+            frag1 = canonicalize_smiles(frag1)
+            frag2 = canonicalize_smiles(frag2)
+
+            # Stoichiometry check
+            assert ((count_atom_types(frag1) + count_atom_types(frag2)) 
+                    == count_atom_types(smiles)), "Error with {}; {}; {}".format(
+                        frag1, frag2, smiles)
+
+            yield pd.Series({
+                'molecule': smiles,
+                'bond_index': bond.GetIdx(),
+                'fragment1': frag1,
+                'fragment2': frag2
+            })
+
+        except ValueError:
+            logging.error('Fragmentation error with {}, bond {}'.format(
+                smiles, bond.GetIdx()))
+            continue
+
+
+def count_atom_types(smiles):
+    """ Return a dictionary of each atom type in the given fragment or molecule
+    """
+    mol = rdkit.Chem.MolFromSmiles(smiles, sanitize=True)
+    mol = rdkit.Chem.rdmolops.AddHs(mol)
+    return Counter([atom.GetSymbol() for atom in mol.GetAtoms()])
+
+
+def canonicalize_smiles(smiles):
+    """ Return a consisten SMILES representation for the given molecule """
+    mol = rdkit.Chem.MolFromSmiles(smiles)
+    return rdkit.Chem.MolToSmiles(mol)
+
