@@ -1,12 +1,14 @@
-from rdkit import Chem
-from rdkit.Chem import AllChem
-from rdkit.Chem.rdMolTransforms import GetBondLength
-import cclib
-
 import os
 import tempfile
 import subprocess
 import logging
+
+import numpy as np
+import cclib
+
+from rdkit import Chem
+from rdkit.Chem import AllChem
+from rdkit.Chem.rdMolTransforms import GetBondLength
 
 def optimize_molecule_mmff(smiles, max_conformers=1000):
     """ Embed a molecule in 3D space, optimizing a number of conformers and
