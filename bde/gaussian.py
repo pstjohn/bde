@@ -78,12 +78,14 @@ def write_gaussian_input_file(mol, confId, cid, scratchdir='/scratch/pstjohn'):
     return input_file
 
 
-def run_gaussian(input_file, output_file, scratchdir='/scratch/pstjohn'):
+def run_gaussian(gjf, cid, scratchdir='/scratch/pstjohn'):
+
+    output_file = scratchdir + '/bde/log/{}_0.log'.format(cid)
     
     with tempfile.TemporaryDirectory(dir=scratchdir + '/gauss_scr') as tmpdirname:
         env = os.environ.copy()
         env['GAUSS_SCRDIR'] = tmpdirname
         subprocess.call("module load gaussian/G16B && g16 < {0} > {1}".format(
-            input_file, output_file), shell=True, env=env)
+            gjf, output_file), shell=True, env=env)
     
     
