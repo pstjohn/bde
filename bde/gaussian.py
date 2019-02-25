@@ -38,7 +38,7 @@ def optimize_molecule_mmff(smiles, max_conformers=1000):
     return mol, int(most_stable_conformer)
 
 
-def write_gaussian_input_file(mol, confId, cid, scratchdir='/scratch/pstjohn'):
+def write_gaussian_input_file(mol, confId, cid, scratchdir='/scratch/pstjohn', nprocs=18, mem='24GB'):
     """ Given an rdkit.Mol object with an optimized, minimum energy conformer
     ID, write a gaussian input file using openbabel to the scratch folder """
 
@@ -47,8 +47,8 @@ def write_gaussian_input_file(mol, confId, cid, scratchdir='/scratch/pstjohn'):
     
     header1 = [
         '%chk={0}'.format(checkpoint_file),        
-        '%MEM=24GB',
-        '%nprocshared=18',
+        '%MEM={}'.format(mem),
+        '%nprocshared={}'.format(nprocs),
         '# stable=opt M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
         ' nosymm guess=mix']
     
