@@ -10,6 +10,8 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem.rdMolTransforms import GetBondLength
 
+logging.getLogger("cclib").disable(logging.INFO)
+
 def optimize_molecule_mmff(smiles, max_conformers=1000):
     """ Embed a molecule in 3D space, optimizing a number of conformers and
     selecting the most stable
@@ -24,6 +26,8 @@ def optimize_molecule_mmff(smiles, max_conformers=1000):
     conformers = AllChem.EmbedMultipleConfs(
         mol, numConfs=NumConformers, pruneRmsThresh=0.2, randomSeed=1,
         useExpTorsionAnglePrefs=True, useBasicKnowledge=True)
+
+    assert conformers, "Conformer embedding failed"
 
     def optimize_conformer(conformer):
         prop = AllChem.MMFFGetMoleculeProperties(mol, mmffVariant="MMFF94s")
@@ -101,7 +105,6 @@ def parse_log_file(logfile, smiles, cid):
     enthalpy. """
 
     # Parse the output log with cclib, assert the optimization completed
-    logging.disable(logging.INFO)
     data = cclib.io.ccread(logfile)
     assert data.optdone, "Optimization not converged"
     
