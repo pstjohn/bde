@@ -76,6 +76,8 @@ def write_gaussian_input_file(mol, confId, cid, scratchdir='/scratch/pstjohn',
         header2 = [
             '--link1--',
             '%chk={0}'.format(checkpoint_file),        
+            '%MEM={}'.format(mem),
+            '%nprocshared={}'.format(nprocs),
             '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
                 ' nosymm guess=read geom=check\n',
             ' {}\n'.format(mol.GetProp('_Name')),
