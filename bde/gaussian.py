@@ -10,7 +10,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem.rdMolTransforms import GetBondLength
 
-logging.getLogger("cclib").disable(logging.INFO)
+logging.getLogger("cclib").setLevel(30)
 
 def optimize_molecule_mmff(smiles, max_conformers=1000):
     """ Embed a molecule in 3D space, optimizing a number of conformers and
