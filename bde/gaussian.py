@@ -2,6 +2,7 @@ import os
 import tempfile
 import subprocess
 import logging
+import uuid
 
 import numpy as np
 import cclib
@@ -47,8 +48,9 @@ def write_gaussian_input_file(mol, confId, cid, scratchdir='/scratch/pstjohn',
     """ Given an rdkit.Mol object with an optimized, minimum energy conformer
     ID, write a gaussian input file using openbabel to the scratch folder """
 
-    input_file = scratchdir + '/bde/gjf/{}_0.gjf'.format(cid)
-    checkpoint_file = scratchdir + '/bde/chk/{0}_0.chk'.format(cid)
+    run_hex = uuid.uuid4().hex[:6]
+    input_file = scratchdir + '/bde/gjf/{0}_{1}.gjf'.format(cid, run_hex)
+    checkpoint_file = scratchdir + '/bde/chk/{0}_{1}.chk'.format(cid, run_hex)
     
     header1 = [
         '%chk={0}'.format(checkpoint_file),        
@@ -86,13 +88,13 @@ def write_gaussian_input_file(mol, confId, cid, scratchdir='/scratch/pstjohn',
         
         f.write('\n'.join(header2))
         
-    return input_file
+    return input_file, run_hex
 
 
-def run_gaussian(gjf, cid, scratchdir='/scratch/pstjohn'):
+def run_gaussian(gjf, cid, run_hex, scratchdir='/scratch/pstjohn'):
     """ Run the given Guassian input file (with associated mol ID) """
 
-    output_file = scratchdir + '/bde/log/{}_0.log'.format(cid)
+    output_file = scratchdir + '/bde/log/{0}_{1}.log'.format(cid, run_hex)
     
     with tempfile.TemporaryDirectory(dir=scratchdir + '/gauss_scr') as tmpdirname:
         env = os.environ.copy()
