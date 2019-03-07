@@ -13,7 +13,7 @@ from rdkit.Chem.rdMolTransforms import GetBondLength
 
 logging.getLogger("cclib").setLevel(30)
 
-def optimize_molecule_mmff(smiles, max_conformers=1000):
+def optimize_molecule_mmff(smiles, max_conformers=1000, min_conformers=100):
     """ Embed a molecule in 3D space, optimizing a number of conformers and
     selecting the most stable
     """
@@ -21,11 +21,12 @@ def optimize_molecule_mmff(smiles, max_conformers=1000):
     mol = Chem.MolFromSmiles(smiles)
     mol = Chem.rdmolops.AddHs(mol)
 
-    NumRotatableBonds = int(AllChem.CalcNumRotatableBonds(mol))
-    NumConformers = min(3**NumRotatableBonds, max_conformers)
+    # Use min < 3^n < max conformers, where n is the number of rotatable bonds
+    NumRotatableBonds = AllChem.CalcNumRotatableBonds(mol)
+    NumConformers = np.clip(3**NumRotatableBonds, min_conformers, max_conformers)
 
     conformers = AllChem.EmbedMultipleConfs(
-        mol, numConfs=NumConformers, pruneRmsThresh=0.2, randomSeed=1,
+        mol, numConfs=int(NumConformers), pruneRmsThresh=0.2, randomSeed=1,
         useExpTorsionAnglePrefs=True, useBasicKnowledge=True)
 
     assert conformers, "Conformer embedding failed"
