@@ -106,6 +106,36 @@ def run_gaussian(gjf, cid, run_hex, scratchdir='/scratch/pstjohn'):
     return output_file
 
 
+def write_gaussian_input_file_parent(
+        mol, confId, cid, scratchdir='/scratch/pstjohn', nprocs=18,
+        mem='24GB'):
+    """ Given an rdkit.Mol object with an optimized, minimum energy conformer
+    ID, write a gaussian input file using openbabel to the scratch folder 
+    
+    This version does not check for a stable wavefunction.
+    """
+
+    run_hex = uuid.uuid4().hex[:6]
+    input_file = scratchdir + '/bde/gjf/{0}_{1}.gjf'.format(cid, run_hex)
+    
+    header1 = [
+        '%MEM={}'.format(mem),
+        '%nprocshared={}'.format(nprocs),
+        '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400) nosymm']
+    
+    with tempfile.NamedTemporaryFile(
+            'w', suffix='.sdf', dir=scratchdir + '/gauss_scr') as sdf_file:
+        writer = Chem.SDWriter(sdf_file)
+        mol.SetProp('_Name', str(cid))
+        writer.write(mol, confId=confId)
+        writer.close()
+
+        subprocess.call(
+            ['obabel', sdf_file.name, '-O', input_file, '-xk', '\n'.join(header1)])
+
+    return input_file, run_hex
+
+
 def parse_log_file(logfile, smiles, cid):
     """ Parse the gaussian log file using cclib, return the optimized mol and
     enthalpy. """
