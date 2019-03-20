@@ -44,7 +44,7 @@ def optimize_molecule_mmff(smiles, max_conformers=1000, min_conformers=100):
     return mol, int(most_stable_conformer)
 
 
-def write_gaussian_input_file(mol, confId, cid, scratchdir='/scratch/pstjohn',
+def write_gaussian_input_file(mol, confId, cid, scratchdir='/tmp/scratch/pstjohn',
                               nprocs=18, mem='24GB'):
     """ Given an rdkit.Mol object with an optimized, minimum energy conformer
     ID, write a gaussian input file using openbabel to the scratch folder """
@@ -92,7 +92,7 @@ def write_gaussian_input_file(mol, confId, cid, scratchdir='/scratch/pstjohn',
     return input_file, run_hex
 
 
-def run_gaussian(gjf, cid, run_hex, scratchdir='/scratch/pstjohn'):
+def run_gaussian(gjf, cid, run_hex, scratchdir='/tmp/scratch/pstjohn'):
     """ Run the given Guassian input file (with associated mol ID) """
 
     output_file = scratchdir + '/bde/log/{0}_{1}.log'.format(cid, run_hex)
@@ -107,7 +107,7 @@ def run_gaussian(gjf, cid, run_hex, scratchdir='/scratch/pstjohn'):
 
 
 def write_gaussian_input_file_parent(
-        mol, confId, cid, scratchdir='/scratch/pstjohn', nprocs=18,
+        mol, confId, cid, scratchdir='/tmp/scratch/pstjohn', nprocs=18,
         mem='24GB'):
     """ Given an rdkit.Mol object with an optimized, minimum energy conformer
     ID, write a gaussian input file using openbabel to the scratch folder 
@@ -180,3 +180,14 @@ def parse_log_file(logfile, smiles, cid):
     mol.SetDoubleProp('Enthalpy', data.enthalpy)
 
     return mol, data.enthalpy
+
+def cleanup(log, gjf, projectdir='/projects/cooptimasoot/psj_bde/'):
+    """ Compress files and store in /projects """
+
+    log_basename = os.path.basename(log)
+    gjf_basename = os.path.basename(gjf)
+
+    subprocess.call(['gzip', log, gjf])
+    subprocess.call(['mv', log + '.gz', projectdir + log_basename + '.gz'])
+    subprocess.call(['mv', gjf + '.gz', projectdir + gjf_basename + '.gz'])
+
