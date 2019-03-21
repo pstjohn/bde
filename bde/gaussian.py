@@ -105,6 +105,14 @@ class GaussianRunner(object):
         self.input_file = tmpdirname + '/{0}_{1}.gjf'.format(self.cid, self.run_hex)
         checkpoint_file = tmpdirname + '/{0}_{1}.chk'.format(self.cid, self.run_hex)
 
+        with tempfile.NamedTemporaryFile(
+                'w', suffix='.sdf', dir=tmpdirname) as sdf_file:
+            writer = Chem.SDWriter(sdf_file)
+            mol.SetProp('_Name', str(self.cid))
+            writer.write(mol, confId=confId)
+            writer.close()
+
+
         if self.type_ is 'fragment':
             # Run stable=opt
         
@@ -115,13 +123,6 @@ class GaussianRunner(object):
                 '# stable=opt M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
                 ' nosymm guess=mix']
             
-            with tempfile.NamedTemporaryFile(
-                    'w', suffix='.sdf', dir=scratchdir + '/gauss_scr') as sdf_file:
-                writer = Chem.SDWriter(sdf_file)
-                mol.SetProp('_Name', str(self.cid))
-                writer.write(mol, confId=confId)
-                writer.close()
-
                 subprocess.call(
                     ['obabel', sdf_file.name, '-O', input_file, '-xk',
                      '\n'.join(header1)])
@@ -151,13 +152,6 @@ class GaussianRunner(object):
                 '%MEM={}'.format(self.mem),
                 '%nprocshared={}'.format(self.nprocs),
                 '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400) nosymm']
-            
-            with tempfile.NamedTemporaryFile(
-                    'w', suffix='.sdf', dir=scratchdir + '/gauss_scr') as sdf_file:
-                writer = Chem.SDWriter(sdf_file)
-                mol.SetProp('_Name', str(self.cid))
-                writer.write(mol, confId=confId)
-                writer.close()
 
                 subprocess.call(
                     ['obabel', sdf_file.name, '-O', input_file, '-xk', '\n'.join(header1)])
