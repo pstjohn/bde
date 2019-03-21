@@ -40,7 +40,7 @@ class GaussianRunner(object):
         with tempfile.TemporaryDirectory(dir=self.scratchdir) as tmpdirname:
 
             print("starting SMILES {}".format(self.smiles))
-            mol, confId = self.optimize_molecule_mmff(self.smiles)
+            mol, confId = self.optimize_molecule_mmff()
             self.write_gaussian_input_file(mol, confId, tmpdirname)
 
             # Run gaussian and time calculation
@@ -64,7 +64,7 @@ class GaussianRunner(object):
         selecting the most stable
         """
         
-        mol = Chem.MolFromSmiles(smiles)
+        mol = Chem.MolFromSmiles(self.smiles)
         mol = Chem.rdmolops.AddHs(mol)
 
         # Use min < 3^n < max conformers, where n is the number of rotatable bonds
@@ -85,7 +85,7 @@ class GaussianRunner(object):
 
         if len(conformers) == 1:
             logging.critical(
-                'Only 1 conformer for SMILES {}'.format(smiles))
+                'Only 1 conformer for SMILES {}'.format(self.smiles))
             most_stable_conformer = conformers[0]
             
         else:
@@ -101,8 +101,8 @@ class GaussianRunner(object):
         ID, write a gaussian input file using openbabel to the scratch folder """
 
         self.run_hex = uuid.uuid4().hex[:6]
-        self.input_file = tmpdirname + '/{0}_{1}.gjf'.format(cid, self.run_hex)
-        checkpoint_file = tmpdirname + '/{0}_{1}.chk'.format(cid, self.run_hex)
+        self.input_file = tmpdirname + '/{0}_{1}.gjf'.format(self.cid, self.run_hex)
+        checkpoint_file = tmpdirname + '/{0}_{1}.chk'.format(self.cid, self.run_hex)
 
         if self.type_ is 'fragment':
             # Run stable=opt
@@ -117,7 +117,7 @@ class GaussianRunner(object):
             with tempfile.NamedTemporaryFile(
                     'w', suffix='.sdf', dir=scratchdir + '/gauss_scr') as sdf_file:
                 writer = Chem.SDWriter(sdf_file)
-                mol.SetProp('_Name', str(cid))
+                mol.SetProp('_Name', str(self.cid))
                 writer.write(mol, confId=confId)
                 writer.close()
 
@@ -154,7 +154,7 @@ class GaussianRunner(object):
             with tempfile.NamedTemporaryFile(
                     'w', suffix='.sdf', dir=scratchdir + '/gauss_scr') as sdf_file:
                 writer = Chem.SDWriter(sdf_file)
-                mol.SetProp('_Name', str(cid))
+                mol.SetProp('_Name', str(self.cid))
                 writer.write(mol, confId=confId)
                 writer.close()
 
@@ -186,7 +186,7 @@ class GaussianRunner(object):
             assert min(data.vibfreqs) >= 0, "Imaginary Frequency"
 
         # Create an RDKit Molecule from the SMILES string
-        mol = Chem.MolFromSmiles(smiles)
+        mol = Chem.MolFromSmiles(self.smiles)
         mol = AllChem.AddHs(mol)
         AllChem.EmbedMolecule(mol)
         conf = mol.GetConformer()
@@ -213,8 +213,8 @@ class GaussianRunner(object):
 
 
         # Set property fields of the molecule for final SDF export
-        mol.SetProp("_Name", str(cid))
-        mol.SetProp('SMILES', smiles)
+        mol.SetProp("_Name", str(self.cid))
+        mol.SetProp('SMILES', self.smiles)
         mol.SetDoubleProp('Enthalpy', data.enthalpy)
 
         return mol, data.enthalpy
