@@ -159,7 +159,7 @@ class GaussianRunner(object):
     def run_gaussian(self, tmpdirname):
         """ Run the given Guassian input file (with associated mol ID) """
 
-        self.log = tmpdirname + '{0}_{1}.log'.format(self.cid, self.run_hex)
+        self.log = tmpdirname + '/{0}_{1}.log'.format(self.cid, self.run_hex)
         
         with tempfile.TemporaryDirectory(dir=tmpdirname) as gausstmp:
             env = os.environ.copy()
