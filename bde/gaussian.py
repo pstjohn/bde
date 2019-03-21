@@ -110,8 +110,8 @@ class GaussianRunner(object):
         
             header1 = [
                 '%chk={0}'.format(checkpoint_file),        
-                '%MEM={}'.format(mem),
-                '%nprocshared={}'.format(nprocs),
+                '%MEM={}'.format(self.mem),
+                '%nprocshared={}'.format(self.nprocs),
                 '# stable=opt M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
                 ' nosymm guess=mix']
             
@@ -135,8 +135,8 @@ class GaussianRunner(object):
                 header2 = [
                     '--link1--',
                     '%chk={0}'.format(checkpoint_file),        
-                    '%MEM={}'.format(mem),
-                    '%nprocshared={}'.format(nprocs),
+                    '%MEM={}'.format(self.mem),
+                    '%nprocshared={}'.format(self.nprocs),
                     '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
                         ' nosymm guess=read geom=check\n',
                     ' {}\n'.format(mol.GetProp('_Name')),
@@ -148,8 +148,8 @@ class GaussianRunner(object):
         else:
 
             header1 = [
-                '%MEM={}'.format(mem),
-                '%nprocshared={}'.format(nprocs),
+                '%MEM={}'.format(self.mem),
+                '%nprocshared={}'.format(self.nprocs),
                 '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400) nosymm']
             
             with tempfile.NamedTemporaryFile(
