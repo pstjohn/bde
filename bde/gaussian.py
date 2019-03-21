@@ -29,19 +29,24 @@ def optimize_molecule_mmff(smiles, max_conformers=1000, min_conformers=100):
         mol, numConfs=int(NumConformers), pruneRmsThresh=0.2, randomSeed=1,
         useExpTorsionAnglePrefs=True, useBasicKnowledge=True)
 
-    assert conformers, "Conformer embedding failed"
-
     def optimize_conformer(conformer):
         prop = AllChem.MMFFGetMoleculeProperties(mol, mmffVariant="MMFF94s")
         ff = AllChem.MMFFGetMoleculeForceField(mol, prop, confId=conformer)
         ff.Minimize()
         return float(ff.CalcEnergy())
 
-    conformer_energies = np.array(
-        [optimize_conformer(conformer) for conformer in conformers])
+    assert conformers, "Conformer embedding failed"
 
-    most_stable_conformer = conformer_energies.argmin()
-    return mol, int(most_stable_conformer)
+    if len(conformers) == 1:
+        logging.critical(
+            'Only 1 conformer for CID: {} with SMILES {}'.format(cid, smiles))
+        most_stable_conformer = conformers[0]
+        
+    else:
+        conformer_energies = np.array(
+            [optimize_conformer(conformer) for conformer in conformers])
+        most_stable_conformer = conformer_energies.argmin()
+
 
 
 def write_gaussian_input_file(mol, confId, cid, scratchdir='/tmp/scratch/pstjohn',
@@ -187,7 +192,11 @@ def cleanup(log, gjf, projectdir='/projects/cooptimasoot/psj_bde/'):
     log_basename = os.path.basename(log)
     gjf_basename = os.path.basename(gjf)
 
-    subprocess.call(['gzip', log, gjf])
-    subprocess.call(['mv', log + '.gz', projectdir + log_basename + '.gz'])
-    subprocess.call(['mv', gjf + '.gz', projectdir + gjf_basename + '.gz'])
+    newlog = projectdir + log_basename + '.gz'
+    newgjf = projectdir + gjf_basename + '.gz'
 
+    subprocess.call(['gzip', log, gjf])
+    subprocess.call(['mv', log + '.gz', newlog])
+    subprocess.call(['mv', gjf + '.gz', newgjf])
+
+    return newlog, newgjf
