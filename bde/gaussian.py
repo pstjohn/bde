@@ -102,7 +102,7 @@ class GaussianRunner(object):
         ID, write a gaussian input file using openbabel to the scratch folder """
 
         self.run_hex = uuid.uuid4().hex[:6]
-        self.input_file = tmpdirname + '/{0}_{1}.gjf'.format(self.cid, self.run_hex)
+        self.gjf = tmpdirname + '/{0}_{1}.gjf'.format(self.cid, self.run_hex)
         checkpoint_file = tmpdirname + '/{0}_{1}.chk'.format(self.cid, self.run_hex)
 
         with tempfile.NamedTemporaryFile(
@@ -123,14 +123,14 @@ class GaussianRunner(object):
                     ' nosymm guess=mix']
                 
                 subprocess.call(
-                    ['obabel', sdf_file.name, '-O', input_file, '-xk',
+                    ['obabel', sdf_file.name, '-O', self.gjf, '-xk',
                      '\n'.join(header1)])
 
                     
-                with open(input_file, 'r') as f:
+                with open(self.gjf, 'r') as f:
                     chg_mul = f.readlines()[7]
 
-                with open(input_file, 'a') as f:
+                with open(self.gjf, 'a') as f:
                     
                     header2 = [
                         '--link1--',
@@ -153,7 +153,7 @@ class GaussianRunner(object):
                     '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400) nosymm']
 
                 subprocess.call(
-                    ['obabel', sdf_file.name, '-O', input_file, '-xk', '\n'.join(header1)])
+                    ['obabel', sdf_file.name, '-O', self.gjf, '-xk', '\n'.join(header1)])
         
 
     def run_gaussian(self, tmpdirname):
