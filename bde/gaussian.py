@@ -35,7 +35,7 @@ class GaussianRunner(object):
         self.projectdir = projectdir
 
 
-    def process():
+    def process(self):
 
         with tempfile.TemporaryDirectory(dir=self.scratchdir) as tmpdirname:
 
