@@ -39,7 +39,7 @@ def optimize_molecule_mmff(smiles, max_conformers=1000, min_conformers=100):
 
     if len(conformers) == 1:
         logging.critical(
-            'Only 1 conformer for CID: {} with SMILES {}'.format(cid, smiles))
+            'Only 1 conformer for SMILES {}'.format(smiles))
         most_stable_conformer = conformers[0]
         
     else:
