@@ -47,6 +47,7 @@ def optimize_molecule_mmff(smiles, max_conformers=1000, min_conformers=100):
             [optimize_conformer(conformer) for conformer in conformers])
         most_stable_conformer = conformer_energies.argmin()
 
+    return mol, int(most_stable_conformer)
 
 
 def write_gaussian_input_file(mol, confId, cid, scratchdir='/tmp/scratch/pstjohn',
