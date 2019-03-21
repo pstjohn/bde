@@ -112,50 +112,49 @@ class GaussianRunner(object):
             writer.write(mol, confId=confId)
             writer.close()
 
-
-        if self.type_ is 'fragment':
-            # Run stable=opt
-        
-            header1 = [
-                '%chk={0}'.format(checkpoint_file),        
-                '%MEM={}'.format(self.mem),
-                '%nprocshared={}'.format(self.nprocs),
-                '# stable=opt M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
-                ' nosymm guess=mix']
+            if self.type_ is 'fragment':
+                # Run stable=opt
             
-                subprocess.call(
-                    ['obabel', sdf_file.name, '-O', input_file, '-xk',
-                     '\n'.join(header1)])
-
-                
-            with open(input_file, 'r') as f:
-                chg_mul = f.readlines()[7]
-
-            with open(input_file, 'a') as f:
-                
-                header2 = [
-                    '--link1--',
+                header1 = [
                     '%chk={0}'.format(checkpoint_file),        
                     '%MEM={}'.format(self.mem),
                     '%nprocshared={}'.format(self.nprocs),
-                    '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
-                        ' nosymm guess=read geom=check\n',
-                    ' {}\n'.format(mol.GetProp('_Name')),
-                    chg_mul
-                ]
+                    '# stable=opt M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
+                    ' nosymm guess=mix']
                 
-                f.write('\n'.join(header2))
+                    subprocess.call(
+                        ['obabel', sdf_file.name, '-O', input_file, '-xk',
+                         '\n'.join(header1)])
 
-        else:
+                    
+                with open(input_file, 'r') as f:
+                    chg_mul = f.readlines()[7]
 
-            header1 = [
-                '%MEM={}'.format(self.mem),
-                '%nprocshared={}'.format(self.nprocs),
-                '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400) nosymm']
+                with open(input_file, 'a') as f:
+                    
+                    header2 = [
+                        '--link1--',
+                        '%chk={0}'.format(checkpoint_file),        
+                        '%MEM={}'.format(self.mem),
+                        '%nprocshared={}'.format(self.nprocs),
+                        '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
+                            ' nosymm guess=read geom=check\n',
+                        ' {}\n'.format(mol.GetProp('_Name')),
+                        chg_mul
+                    ]
+                    
+                    f.write('\n'.join(header2))
+
+            else:
+
+                header1 = [
+                    '%MEM={}'.format(self.mem),
+                    '%nprocshared={}'.format(self.nprocs),
+                    '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400) nosymm']
 
                 subprocess.call(
                     ['obabel', sdf_file.name, '-O', input_file, '-xk', '\n'.join(header1)])
-            
+        
 
     def run_gaussian(self, tmpdirname):
         """ Run the given Guassian input file (with associated mol ID) """
