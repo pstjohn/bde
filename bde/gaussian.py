@@ -122,9 +122,9 @@ class GaussianRunner(object):
                     '# stable=opt M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
                     ' nosymm guess=mix']
                 
-                    subprocess.call(
-                        ['obabel', sdf_file.name, '-O', input_file, '-xk',
-                         '\n'.join(header1)])
+                subprocess.call(
+                    ['obabel', sdf_file.name, '-O', input_file, '-xk',
+                     '\n'.join(header1)])
 
                     
                 with open(input_file, 'r') as f:
