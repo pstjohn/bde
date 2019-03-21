@@ -69,7 +69,8 @@ class GaussianRunner(object):
 
         # Use min < 3^n < max conformers, where n is the number of rotatable bonds
         NumRotatableBonds = AllChem.CalcNumRotatableBonds(mol)
-        NumConformers = np.clip(3**NumRotatableBonds, min_conformers, max_conformers)
+        NumConformers = np.clip(3**NumRotatableBonds, self.min_conformers,
+                                self.max_conformers)
 
         conformers = AllChem.EmbedMultipleConfs(
             mol, numConfs=int(NumConformers), pruneRmsThresh=0.2, randomSeed=1,
