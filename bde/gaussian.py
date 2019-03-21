@@ -222,7 +222,7 @@ class GaussianRunner(object):
         newlog = self.projectdir + log_basename + '.gz'
         newgjf = self.projectdir + gjf_basename + '.gz'
 
-        subprocess.call(['gzip', self.log, gjf])
+        subprocess.call(['gzip', self.log, self.gjf])
         subprocess.call(['mv', self.log + '.gz', newlog])
         subprocess.call(['mv', self.gjf + '.gz', newgjf])
 
