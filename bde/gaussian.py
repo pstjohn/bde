@@ -4,6 +4,7 @@ import subprocess
 import logging
 import uuid
 import time
+import socket
 
 import numpy as np
 import cclib
@@ -39,7 +40,7 @@ class GaussianRunner(object):
 
         with tempfile.TemporaryDirectory(dir=self.scratchdir) as tmpdirname:
 
-            print("starting SMILES {}".format(self.smiles))
+            print("starting SMILES {0} on host {1}".format(self.smiles), socket.gethostname())
             mol, confId = self.optimize_molecule_mmff()
             self.write_gaussian_input_file(mol, confId, tmpdirname)
 
