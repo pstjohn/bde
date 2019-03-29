@@ -48,8 +48,8 @@ class GaussianRunner(object):
             gauss_start_time = time.time()
             self.run_gaussian(tmpdirname)
             gauss_run_time = time.time() - gauss_start_time
-            print("python walltime for SMILES {0}: {1}".format(
-                self.smiles, gauss_run_time))
+            print("python walltime for SMILES {0} on host {1}: {2}".format(
+                self.smiles, socket.gethostname(), gauss_run_time))
 
 
             mol, enthalpy = self.parse_log_file()
