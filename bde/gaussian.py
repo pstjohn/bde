@@ -40,7 +40,7 @@ class GaussianRunner(object):
 
         with tempfile.TemporaryDirectory(dir=self.scratchdir) as tmpdirname:
 
-            print("starting SMILES {0} on host {1}".format(self.smiles), socket.gethostname())
+            print("starting SMILES {0} on host {1}".format(self.smiles, socket.gethostname())
             mol, confId = self.optimize_molecule_mmff()
             self.write_gaussian_input_file(mol, confId, tmpdirname)
 
