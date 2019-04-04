@@ -21,7 +21,8 @@ class GaussianRunner(object):
     def __init__(self, smiles, cid, type_, max_conformers=1000,
                  min_conformers=100, nprocs=18, mem='40GB',
                  scratchdir='/tmp/scratch',
-                 projectdir='/projects/cooptimasoot/psj_bde/'):
+                 projectdir='/projects/cooptimasoot/psj_bde/',
+                 gaussian_timeout=86400):
         """ Class to handle the overall temporary directory management for
         running Gaussian on Eagle """
 
@@ -34,6 +35,7 @@ class GaussianRunner(object):
         self.mem = mem
         self.scratchdir = scratchdir
         self.projectdir = projectdir
+        self.gaussian_timeout = gaussian_timeout
 
 
     def process(self):
@@ -123,7 +125,7 @@ class GaussianRunner(object):
                     '# stable=opt M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
                     ' nosymm guess=mix']
                 
-                subprocess.call(
+                subprocess.run(
                     ['obabel', sdf_file.name, '-O', self.gjf, '-xk',
                      '\n'.join(header1)])
 
@@ -153,7 +155,7 @@ class GaussianRunner(object):
                     '%nprocshared={}'.format(self.nprocs),
                     '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400) nosymm']
 
-                subprocess.call(
+                subprocess.run(
                     ['obabel', sdf_file.name, '-O', self.gjf, '-xk', '\n'.join(header1)])
         
 
@@ -161,12 +163,14 @@ class GaussianRunner(object):
         """ Run the given Guassian input file (with associated mol ID) """
 
         self.log = tmpdirname + '/{0}_{1}.log'.format(self.cid, self.run_hex)
+        gaussian_cmd = "module load gaussian/G16B && g16 < {0} > {1}".format(
+            self.gjf, self.log)
         
         with tempfile.TemporaryDirectory(dir=tmpdirname) as gausstmp:
             env = os.environ.copy()
             env['GAUSS_SCRDIR'] = gausstmp
-            subprocess.call("module load gaussian/G16B && g16 < {0} > {1}".format(
-                self.gjf, self.log), shell=True, env=env)
+            subprocess.run(gaussian_cmd, shell=True, env=env,
+                           timeout=self.gaussian_timeout)
 
 
     def parse_log_file(self):
@@ -223,8 +227,8 @@ class GaussianRunner(object):
         newlog = self.projectdir + 'log/' + log_basename + '.gz'
         newgjf = self.projectdir + 'gjf/' + gjf_basename + '.gz'
 
-        subprocess.call(['gzip', self.log, self.gjf])
-        subprocess.call(['mv', self.log + '.gz', newlog])
-        subprocess.call(['mv', self.gjf + '.gz', newgjf])
+        subprocess.run(['gzip', self.log, self.gjf])
+        subprocess.run(['mv', self.log + '.gz', newlog])
+        subprocess.run(['mv', self.gjf + '.gz', newgjf])
 
         return newlog
