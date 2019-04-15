@@ -59,6 +59,7 @@ def fragment_iterator(smiles):
             yield pd.Series({
                 'molecule': smiles,
                 'bond_index': bond.GetIdx(),
+                'bond_type': get_bond_type(bond),
                 'fragment1': frag1,
                 'fragment2': frag2,
                 'delta_assigned_stereo': delta_stereocenters['assigned'],
@@ -95,4 +96,10 @@ def enumerate_stereocenters(smiles):
     unassigned = len([center for center in stereocenters if center[1] == '?'])
 
     return pd.Series({'assigned': assigned, 'unassigned': unassigned})
+
+
+def get_bond_type(bond):
+    return "{}-{}".format(
+        *tuple(sorted((bond.GetBeginAtom().GetSymbol(),
+                       bond.GetEndAtom().GetSymbol()))))
 
