@@ -70,6 +70,19 @@ class GaussianRunner(object):
         mol = Chem.MolFromSmiles(self.smiles)
         mol = Chem.rdmolops.AddHs(mol)
 
+        # If the molecule is a radical; add a hydrogen so MMFF converges to a
+        # reasonable structure
+        is_radical = False
+        radical_index = None
+        for i, atom in enumerate(mol.GetAtoms()):
+            if atom.GetNumRadicalElectrons() != 0:
+                is_radical = True
+                radical_index = i
+                
+                atom.SetNumExplicitHs(atom.GetNumExplicitHs() + 1)
+                atom.SetNumRadicalElectrons(0)
+                
+
         # Use min < 3^n < max conformers, where n is the number of rotatable bonds
         NumRotatableBonds = AllChem.CalcNumRotatableBonds(mol)
         NumConformers = np.clip(3**NumRotatableBonds, self.min_conformers,
@@ -96,6 +109,12 @@ class GaussianRunner(object):
             conformer_energies = np.array(
                 [optimize_conformer(conformer) for conformer in conformers])
             most_stable_conformer = conformer_energies.argmin()
+
+        # If hydrogen was added; remove it before returning the final mol
+        if is_radical:
+            radical_atom = mol.GetAtomWithIdx(radical_index)
+            radical_atom.SetNumExplicitHs(int(radical_atom.GetNumExplicitHs()) - 1)
+            radical_atom.SetNumRadicalElectrons(1)
 
         return mol, int(most_stable_conformer)
 
