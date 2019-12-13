@@ -12,9 +12,6 @@ def fragment_iterator(smiles):
     mol = rdkit.Chem.rdmolops.AddHs(mol)
     rdkit.Chem.Kekulize(mol, clearAromaticFlags=True)
 
-    if 'F' in count_atom_types(smiles):
-        return
-
     for bond in mol.GetBonds():
 
         if bond.IsInRing():
