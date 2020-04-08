@@ -54,12 +54,12 @@ class GaussianRunner(object):
                 self.smiles, socket.gethostname(), gauss_run_time))
 
 
-            mol, enthalpy = self.parse_log_file()
+            mol, enthalpy, freeenergy, scfenergy = self.parse_log_file()
             log = self.cleanup()
             
             molstr = Chem.MolToMolBlock(mol)
 
-            return molstr, enthalpy, log
+            return molstr, enthalpy, freeenergy, scfenergy, log
 
 
     def optimize_molecule_mmff(self):
@@ -128,8 +128,8 @@ class GaussianRunner(object):
         checkpoint_file = tmpdirname + '/{0}_{1}.chk'.format(self.cid, self.run_hex)
 
         with tempfile.NamedTemporaryFile(
-                'w', suffix='.sdf', dir=tmpdirname) as sdf_file:
-            writer = Chem.SDWriter(sdf_file)
+                'wt', suffix='.sdf', dir=tmpdirname) as sdf_file:
+            writer = Chem.SDWriter(sdf_file.name)
             mol.SetProp('_Name', str(self.cid))
             writer.write(mol, confId=confId)
             writer.close()
@@ -217,8 +217,10 @@ class GaussianRunner(object):
         for i in range(conf.GetNumAtoms()):
             conf.SetAtomPosition(i, data.atomcoords[-1][i])
         
-        covalent_radii = {'H': .31, 'C': .76, 'N': .71, 'O': .66}
-        
+        covalent_radii = {'H': .31, 'C': .76, 'N': .71,
+                          'O': .66, 'P': 1.07, 'S': 1.05,
+                          'F': .57, 'Cl': 1.02, 'Br': 1.20}
+
         # Check bond lengths
         for bond in mol.GetBonds():
             length = GetBondLength(
@@ -235,7 +237,7 @@ class GaussianRunner(object):
         mol.SetProp('SMILES', self.smiles)
         mol.SetDoubleProp('Enthalpy', data.enthalpy)
 
-        return mol, data.enthalpy
+        return mol, data.enthalpy, data.freeenergy, data.scfenergies[-1] / 27.2114
 
     def cleanup(self):
         """ Compress files and store in /projects """
