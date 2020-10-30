@@ -134,7 +134,7 @@ class GaussianRunner(object):
             writer.write(mol, confId=confId)
             writer.close()
 
-            if self.type_ is 'fragment':
+            if self.type_ == 'fragment':
                 # Run stable=opt
             
                 header1 = [
@@ -182,7 +182,7 @@ class GaussianRunner(object):
         """ Run the given Guassian input file (with associated mol ID) """
 
         self.log = tmpdirname + '/{0}_{1}.log'.format(self.cid, self.run_hex)
-        gaussian_cmd = "module load gaussian/G16B && g16 < {0} > {1}".format(
+        gaussian_cmd = "module load gaussian/G16C && g16 < {0} > {1}".format(
             self.gjf, self.log)
         
         with tempfile.TemporaryDirectory(dir=tmpdirname) as gausstmp:
