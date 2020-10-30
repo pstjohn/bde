@@ -11,6 +11,7 @@ import cclib
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
+from rdkit.Chem import PeriodicTable
 from rdkit.Chem.rdMolTransforms import GetBondLength
 
 logging.getLogger("cclib").setLevel(30)
@@ -217,17 +218,16 @@ class GaussianRunner(object):
         for i in range(conf.GetNumAtoms()):
             conf.SetAtomPosition(i, data.atomcoords[-1][i])
         
-        covalent_radii = {'H': .31, 'C': .76, 'N': .71,
-                          'O': .66, 'P': 1.07, 'S': 1.05,
-                          'F': .57, 'Cl': 1.02, 'Br': 1.20}
+        pt = Chem.GetPeriodicTable()
+        covalent_radii = lambda x: PeriodicTable.GetRcovalent(pt, x)
 
         # Check bond lengths
         for bond in mol.GetBonds():
             length = GetBondLength(
                 mol.GetConformer(), bond.GetBeginAtomIdx(), bond.GetEndAtomIdx())
             
-            max_length = (covalent_radii[bond.GetBeginAtom().GetSymbol()] + 
-                          covalent_radii[bond.GetEndAtom().GetSymbol()] + 0.4)
+            max_length = (covalent_radii(bond.GetBeginAtom().GetSymbol()) + 
+                          covalent_radii(bond.GetEndAtom().GetSymbol()) + 0.4)
             
             assert length <= max_length, "bond greater than maximum covalent length"
 
