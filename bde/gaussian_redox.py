@@ -128,7 +128,7 @@ class GaussianRedoxRunner(object):
         self.log = tmpdirname + '/{0}_{1}.log'.format(self.cid, self.run_hex)
         self.log = os.path.join(self.projectdir, 'log', '{0}_{1}.log'.format(self.cid, self.run_hex))
 
-        gaussian_cmd = "module load gaussian/G16B && g16 < {0} > {1}".format(
+        gaussian_cmd = "module load gaussian/G16C && g16 < {0} > {1}".format(
             self.gjf, self.log)
         
         with tempfile.TemporaryDirectory(dir=tmpdirname) as gausstmp:
