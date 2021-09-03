@@ -133,24 +133,22 @@ class GaussianRunner(object):
         self.run_hex = uuid.uuid4().hex[:6]
         self.xyz = tmpdirname + '/{0}_{1}.xyz'.format(self.cid, self.run_hex)
         self.crest_out = tmpdirname + '/{0}_{1}.crest.out'.format(self.cid, self.run_hex)
+        self.best_xyz = tmpdirname + '/{0}_{1}_best.xyz.'.format(self.cid, self.run_hex)
 
         #writing to xyzfile
         rdkit.Chem.rdmolfiles.MolToXYZFile(mol,self.xyz,confId=confId)
 
-        #running calc in temporary TemporaryDirectory : NEEDS CHECK
-        with tempfile.TemporaryDirectory(dir=tmpdirname) as cresttmp:
-            env = os.environ.copy()
-            crest_cmd = "crest {0} > {1}".format(
-                self.xyz, self.crest_out)
+        #running calc in temporary TemporaryDirectory : tmpdirname
+        env = os.environ.copy()
+        crest_cmd = "crest {0} > {1}".format(
+            self.xyz, self.crest_out)
 
-            subprocess.run(crest_cmd, shell=True, env=env,
-                           timeout=self.crest_timeout)
+        subprocess.run(crest_cmd, shell=True, env=env,
+                       timeout=self.crest_timeout)
 
-            self.best_xyz = tmpdirname + '/{0}_{1}_best.xyz.'.format(self.cid, self.run_hex)
-
-            #crest outputs common name files such as crest_best.xyz. We have to move it
-            #such that it can be accessed again to creat gjf file for gaussian
-            subprocess.run(['mv', 'crest_best.xyz', self.best_xyz])
+        #crest outputs common name files such as crest_best.xyz. We have to move it
+        #such that it can be accessed again to creat gjf file for gaussian
+        subprocess.run(['mv', 'crest_best.xyz', self.best_xyz])
 
 
 
