@@ -9,6 +9,7 @@ import socket
 import numpy as np
 import cclib
 
+import rdkit
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem import PeriodicTable
@@ -22,7 +23,8 @@ class GaussianRunner(object):
     def __init__(self, smiles, cid, type_, max_conformers=1000,
                  min_conformers=100, nprocs=18, mem='40GB',
                  scratchdir='/tmp/scratch',
-                 projectdir='/projects/cooptimasoot/psj_bde/',
+                 projectdir='/projects/rlmolecule/svss/home/Projects-python/crest-bde/',
+                 crest='~/bin/crest/crest',
                  crest_timeout=86400,
                  gaussian_timeout=86400):
         """ Class to handle the overall temporary directory management for
@@ -37,6 +39,7 @@ class GaussianRunner(object):
         self.mem = mem
         self.scratchdir = scratchdir
         self.projectdir = projectdir
+        self.crest = crest
         self.crest_timeout = crest_timeout
         self.gaussian_timeout = gaussian_timeout
 
@@ -140,7 +143,7 @@ class GaussianRunner(object):
 
         #running calc in temporary TemporaryDirectory : tmpdirname
         env = os.environ.copy()
-        crest_cmd = "crest {0} > {1}".format(
+        crest_cmd = "{0} {1} > {2}".format(self.crest,
             self.xyz, self.crest_out)
 
         subprocess.run(crest_cmd, shell=True, env=env,
@@ -175,22 +178,21 @@ class GaussianRunner(object):
                  '\n'.join(header1)])
 
             with open(self.gjf, 'r') as f:
-                chg_mul = f.readlines()[7]
+                inputs = f.read().split('\n')
+                inputs[5] = f'{self.cid}_{self.run_hex}'
+                chg_mul = inputs[7]
 
-            with open(self.gjf, 'a') as f:
 
-                header2 = [
-                    '--link1--',
-                    '%chk={0}'.format(checkpoint_file),
-                    '%MEM={}'.format(self.mem),
-                    '%nprocshared={}'.format(self.nprocs),
-                    '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
-                        ' nosymm guess=read geom=check\n',
-                    ' {}\n'.format(mol.GetProp('_Name')),
-                    chg_mul
-                ]
-
-                f.write('\n'.join(header2))
+            inputs += [
+                '--link1--',
+                '%chk={0}'.format(checkpoint_file),
+                '%MEM={}'.format(self.mem),
+                '%nprocshared={}'.format(self.nprocs),
+                '# opt freq M062X/Def2TZVP scf=(xqc,maxconventionalcycles=400)'
+                ' nosymm guess=read geom=check\n',
+                ' {0}_{1}\n'.format(self.cid, self.run_hex),
+                chg_mul
+            ]
 
         else:
 
@@ -202,6 +204,19 @@ class GaussianRunner(object):
             subprocess.run(
                 ['obabel', '-ixyz',self.best_xyz, '-O', self.gjf, '-xk',
                  '\n'.join(header1)])
+
+            with open(self.gjf, 'r') as f:
+                inputs = f.read().split('\n')
+                inputs[4] = f'{self.cid}_{self.run_hex}'
+
+        with open(self.gjf, 'wt') as f:
+            f.write('\n'.join(inputs))
+
+        # debug -- keep a copy before running gaussian
+        gjf_basename = os.path.basename(self.gjf)
+        newgjf = self.projectdir + 'gjf_errors/' + gjf_basename
+        subprocess.run(['cp', self.gjf, newgjf])
+
 
 
     def run_gaussian(self, tmpdirname):
